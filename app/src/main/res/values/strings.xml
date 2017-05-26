@@ -1,0 +1,16 @@
+<resources>
+    <string name="app_name">Popular Movies</string>
+    <string name="activity_movie_detail">Movie Details</string>
+
+    <string name="error">An Error has occurred. Please check your network and try again.</string>
+    <string name="content_description_thumb">Thumbnail for movie</string>
+
+    <string name="error_load_data">Unable to load data.</string>
+    <string name="error_load_data_detail">Unable to load data: </string>
+    <string name="selected_movie">Selected Movie: </string>
+    <string name="released">Released: </string>
+    <string name="rating">Rating: </string>
+
+    <string name="spinner_popular">Popular</string>
+    <string name="spinner_top_rated">Top Rated</string>
+</resources>
