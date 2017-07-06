@@ -17,9 +17,8 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import net.nsreverse.popularmovies_part1_udacity.data.NetworkUtils;
 import net.nsreverse.popularmovies_part1_udacity.data.NetworkUtils.Sort;
-import net.nsreverse.popularmovies_part1_udacity.data.ParseJSONUtils;
+import net.nsreverse.popularmovies_part1_udacity.data.background.MoviesAsyncTask;
 import net.nsreverse.popularmovies_part1_udacity.model.Movie;
 
 import java.io.ByteArrayOutputStream;
@@ -29,7 +28,8 @@ import java.io.ByteArrayOutputStream;
  * user selects.
  */
 public class MainActivity extends AppCompatActivity
-                          implements MovieAdapter.MovieAdapterOnClickHandler {
+                          implements MovieAdapter.MovieAdapterOnClickHandler,
+                                     MoviesAsyncTask.Delegate {
 
     // Fields
     private static final String TAG = MainActivity.class.getSimpleName();
@@ -151,76 +151,27 @@ public class MainActivity extends AppCompatActivity
     private void reloadData() {
         mMovieAdapter = new MovieAdapter(this);
         mRecyclerView.setAdapter(mMovieAdapter);
-        new MoviesAsyncTask().execute(mCurrentSort);
+        new MoviesAsyncTask(this, mCurrentSort).execute(mCurrentSort);
     }
 
-    /**
-     * This class runs instructions in the background to download JSON and the respective poster
-     * images of movies.
-     */
-    private class MoviesAsyncTask extends AsyncTask<Sort, Void, Movie[]> {
+    @Override
+    public void moviesDownloaded(Movie[] movies) {
+        if (movies != null && mMovieAdapter != null) {
+            showMovieRecyclerView(true);
+            mMovieAdapter.setMovieData(movies);
+        }
+        else {
+            showMovieRecyclerView(false);
 
-        /**
-         * This method handles overriding onPreExecute to show the indeterminate ProgressBar while
-         * loading data.
-         */
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-            mProgressBar.setVisibility(View.VISIBLE);
+            if (mToast != null) {
+                mToast.cancel();
+            }
+
+            mToast = Toast.makeText(MainActivity.this,
+                    getResources().getString(R.string.error_load_data), Toast.LENGTH_LONG);
+            mToast.show();
         }
 
-        /**
-         * This method runs in the background to retrieve desired data.
-         *
-         * @param params A Sort enum passed in to determine which api link to use. Only the first
-         *               of the varargs is used.
-         * @return An array of Movie objects.
-         */
-        @Override
-        protected Movie[] doInBackground(Sort... params) {
-            Movie[] movies;
-
-            try {
-                String json = NetworkUtils.getJSONFromURLWithSort(mCurrentSort);
-                movies = ParseJSONUtils.parseJSON(MainActivity.this, json);
-            }
-            catch (Exception ex) {
-                // General Exception as the basic handling is identical.
-                Log.d(MoviesAsyncTask.class.getSimpleName(),
-                        getString(R.string.error_load_data_detail) + ex.getMessage());
-
-                movies = null;
-            }
-
-            return movies;
-        }
-
-        /**
-         * This method handles UI updating of the new Movie array and whether or not the
-         * RecyclerView should be hidden.
-         *
-         * @param movies A Movie array to update the RecyclerView's adapter.
-         */
-        @Override
-        protected void onPostExecute(Movie[] movies) {
-            if (movies != null && mMovieAdapter != null) {
-                showMovieRecyclerView(true);
-                mMovieAdapter.setMovieData(movies);
-            }
-            else {
-                showMovieRecyclerView(false);
-
-                if (mToast != null) {
-                    mToast.cancel();
-                }
-
-                mToast = Toast.makeText(MainActivity.this,
-                        getResources().getString(R.string.error_load_data), Toast.LENGTH_LONG);
-                mToast.show();
-            }
-
-            mProgressBar.setVisibility(View.INVISIBLE);
-        }
+        mProgressBar.setVisibility(View.INVISIBLE);
     }
 }
