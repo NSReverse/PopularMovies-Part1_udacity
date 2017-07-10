@@ -17,7 +17,9 @@ import java.util.Scanner;
  * Created by Robert on 5/26/2017.
  */
 
-public class NetworkUtils {
+public final class NetworkUtils {
+
+    private NetworkUtils() { }
 
     public enum Sort {
         POPULAR,
